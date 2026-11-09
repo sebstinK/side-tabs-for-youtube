@@ -64,11 +64,11 @@ Keine Verbindung zu YouTube oder Google.
 | Asset | Size | Required |
 |---|---|---|
 | Store icon | 128×128 | yes – use `icons/icon128.png` |
-| Screenshots | 1280×800 or 640×400, 1–5 images | yes, at least one |
-| Small promo tile | 440×280 | yes |
-| Marquee promo tile | 1400×560 | no |
+| Screenshots | 1280×800 or 640×400, 1–5 images | yes, at least one – `store-assets/1-comments-dark.jpg`, `2-info-light.jpg`, `3-recommended-dark.jpg` |
+| Small promo tile | 440×280 | yes – `store-assets/promo-small-440x280.jpg` |
+| Marquee promo tile | 1400×560 | no – `store-assets/promo-marquee-1400x560.jpg` |
 
-Screenshots: take them yourself on a video you're allowed to show (e.g. your own upload or a Creative Commons video) – one per tab works well.
+The screenshots show "Big Buck Bunny" (Blender Foundation, CC BY), so they may be shown publicly. When you retake them, use a video you're allowed to show (your own upload or a Creative Commons video) and save them as JPEG or 24-bit PNG without alpha.
 
 ## Privacy practices tab
 

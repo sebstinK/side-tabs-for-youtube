@@ -22,8 +22,7 @@
 
 On a YouTube watch page, the comments and the full description sit *below* the video. To read them you have to scroll down, and the video scrolls out of view. YouTube once tested a sidebar with tabs for exactly this, then removed it. This extension brings it back.
 
-<!-- Add a screenshot here, e.g. docs/screenshot.png (1280×800 works for the Chrome Web Store too) -->
-<!-- ![Screenshot](docs/screenshot.png) -->
+![Side Tabs for YouTube: the Comments tab next to the video](docs/store-assets/1-comments-dark.jpg)
 
 ## Features
 
@@ -52,7 +51,7 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 
 ### Chrome Web Store
 
-*Coming soon.*
+*In review – the link follows as soon as the extension is published.*
 
 ## How it works
 
@@ -81,7 +80,8 @@ Moving instead of cloning is the important idea: YouTube's components keep their
 │   ├── package.sh         Builds the ZIP for the Chrome Web Store
 │   └── make_icons.py      Re-generates the icons (no dependencies)
 └── docs/
-    └── store-listing.md   Texts for the Chrome Web Store listing
+    ├── store-listing.md   Texts for the Chrome Web Store listing
+    └── store-assets/      Screenshots and promo tiles for the store
 ```
 
 ## Development
