@@ -28,6 +28,7 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 ## Features
 
 - **Three tabs in the right sidebar:** Recommended, Info (description) and Comments.
+- **Always ready to comment:** the "Add a comment…" box stays pinned at the top of the Comments tab.
 - **The video stays visible.** The sidebar is as tall as the window and scrolls on its own.
 - **Everything still works.** Replies, likes, sorting, "load more" and timestamp links behave as usual, because the extension uses YouTube's own elements instead of copies.
 - **Remembers your tab** and the scroll position of each tab.
@@ -96,6 +97,7 @@ Useful places to start:
 |---|---|
 | Fix the extension after a YouTube update | `SELECTORS` at the top of `src/content.js` |
 | Add a new tab | `TABS` and `SELECTORS` in `src/content.js`, plus a label in `_locales/*/messages.json` |
+| Pin something above a tab's list | `PINNED` and `SELECTORS` in `src/content.js` |
 | Change colours or sizes | CSS variables at the top of `src/styles.css` |
 | Add a language | Copy `_locales/en` to `_locales/<code>` and translate |
 

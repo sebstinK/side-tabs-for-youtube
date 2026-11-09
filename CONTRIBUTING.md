@@ -25,7 +25,11 @@ There are no automated tests yet, because the extension runs against the live Yo
 
 - [ ] Open a video: the three tabs appear in the right column.
 - [ ] **Comments** tab: comments load, more load when you scroll down, replies expand, sorting works.
+- [ ] **Comments** tab: the header with "Add a comment…" stays pinned at the top while scrolling.
+- [ ] **Recommended** tab: hover a thumbnail until the preview plays, then scroll the sidebar: the preview moves with its thumbnail.
 - [ ] **Info** tab: the description expands, timestamp links jump in the video.
+- [ ] With a large window, scroll the whole page down: the tabs stay at the top of the window.
+- [ ] Scroll with the mouse over a playing hover preview and over the tab bar: the sidebar scrolls, not the page.
 - [ ] Click a recommended video: the tabs show the new video's content.
 - [ ] Theater mode on and off: the layout is correct both ways.
 - [ ] Fullscreen on and off.

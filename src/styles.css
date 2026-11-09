@@ -7,6 +7,7 @@
   --yts-chip-fg: #0f0f0f;
   --yts-chip-active-bg: #0f0f0f;
   --yts-chip-active-fg: #ffffff;
+  --yts-divider: rgba(0, 0, 0, 0.1);
 }
 
 html[dark] {
@@ -15,6 +16,14 @@ html[dark] {
   --yts-chip-fg: #f1f1f1;
   --yts-chip-active-bg: #f1f1f1;
   --yts-chip-active-fg: #0f0f0f;
+  --yts-divider: rgba(255, 255, 255, 0.12);
+}
+
+/* A sticky element can only stick inside its parent. #secondary-inner is normally just
+   as tall as its content (our panel), so when the left column is taller than the window
+   the panel would scroll away with the page. Let it fill the whole column instead. */
+html.yts-active ytd-watch-flexy #secondary-inner {
+  min-height: 100%;
 }
 
 #yts-panel {
@@ -76,4 +85,40 @@ html[dark] {
 
 #yts-pane-description > #description {
   margin-top: 0;
+}
+
+/* Pinned slot between the tab bar and the list (e.g. the comment header with count,
+   sorting and "Add a comment…"). It doesn't scroll, so it needs no background and
+   sits on whatever YouTube paints behind the sidebar, just like the tab bar. */
+.yts-pinned {
+  flex: 0 0 auto;
+  padding: 0 6px 12px 0;
+}
+
+.yts-pinned[hidden] {
+  display: none !important;
+}
+
+.yts-pinned.yts-scrolled {
+  box-shadow: 0 1px 0 var(--yts-divider);
+}
+
+/* YouTube's own spacing (24px above, 32px below) is too much for a pinned bar. */
+#yts-pinned-commentsHeader ytd-comments-header-renderer {
+  margin: 0;
+}
+
+#yts-pinned-commentsHeader ytd-comments-header-renderer > #title {
+  margin-bottom: 12px;
+}
+
+#yts-pane-comments {
+  padding-top: 12px;
+}
+
+/* Hover preview follows the scrolling pane (offset set by content.js). */
+#video-preview .ytdVideoPreviewLoaderVideoPreviewContainer,
+#video-preview .ytdVideoPreviewPortalPreviewContainer {
+  translate: 0 var(--yts-preview-dy, 0px);
+  clip-path: var(--yts-preview-clip, none);
 }
