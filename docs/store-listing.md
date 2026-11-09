@@ -33,7 +33,7 @@ Everything keeps working: replies, likes, sorting, loading more comments and tim
 • Light and dark theme
 • Switches off in theater mode, fullscreen and narrow windows
 • No tracking, no ads, no data collection
-• Open source (MIT): <GitHub URL>
+• Open source (MIT): https://github.com/sebstinK/side-tabs-for-youtube
 
 Not affiliated with YouTube or Google.
 
@@ -55,7 +55,7 @@ Alles funktioniert weiter: Antworten, Likes, Sortierung, Nachladen und Zeitstemp
 • Helles und dunkles Design
 • Schaltet sich im Kinomodus, Vollbild und bei schmalem Fenster ab
 • Kein Tracking, keine Werbung, keine Datensammlung
-• Open Source (MIT): <GitHub-URL>
+• Open Source (MIT): https://github.com/sebstinK/side-tabs-for-youtube
 
 Keine Verbindung zu YouTube oder Google.
 
@@ -89,4 +89,4 @@ Screenshots: take them yourself on a video you're allowed to show (e.g. your own
 - I do not use or transfer user data to determine creditworthiness or for lending purposes.
 
 **Privacy policy URL:** link to `PRIVACY.md` in your GitHub repository, e.g.
-`https://github.com/<your-username>/side-tabs-for-youtube/blob/main/PRIVACY.md`
+`https://github.com/sebstinK/side-tabs-for-youtube/blob/main/PRIVACY.md`

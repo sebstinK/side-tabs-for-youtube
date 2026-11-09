@@ -42,7 +42,7 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 
 1. Download this repository (**Code → Download ZIP**, then unzip) or clone it:
    ```bash
-   git clone https://github.com/<your-username>/side-tabs-for-youtube.git
+   git clone https://github.com/sebstinK/side-tabs-for-youtube.git
    ```
 2. Open `chrome://extensions` (Brave: `brave://extensions`, Edge: `edge://extensions`).
 3. Turn on **Developer mode** (top right).
