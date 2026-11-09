@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "Side Tabs for YouTube"
+  },
+  "extDescription": {
+    "message": "Wechsle in der rechten Spalte zwischen Empfohlen, Infos und Kommentaren, während das Video weiterläuft. Kein Runterscrollen."
+  },
+  "tabRelated": {
+    "message": "Empfohlen"
+  },
+  "tabDescription": {
+    "message": "Infos"
+  },
+  "tabComments": {
+    "message": "Kommentare"
+  }
+}

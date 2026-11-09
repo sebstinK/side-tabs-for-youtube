@@ -1,0 +1,79 @@
+/* Side Tabs for YouTube – MIT License.
+   Own colour tokens: YouTube no longer exposes its --yt-spec-* variables globally.
+   The dark theme is detected via the <html dark> attribute. */
+:root {
+  --yts-chip-bg: rgba(0, 0, 0, 0.05);
+  --yts-chip-bg-hover: rgba(0, 0, 0, 0.1);
+  --yts-chip-fg: #0f0f0f;
+  --yts-chip-active-bg: #0f0f0f;
+  --yts-chip-active-fg: #ffffff;
+}
+
+html[dark] {
+  --yts-chip-bg: rgba(255, 255, 255, 0.1);
+  --yts-chip-bg-hover: rgba(255, 255, 255, 0.2);
+  --yts-chip-fg: #f1f1f1;
+  --yts-chip-active-bg: #f1f1f1;
+  --yts-chip-active-fg: #0f0f0f;
+}
+
+#yts-panel {
+  position: sticky;
+  top: calc(var(--ytd-masthead-height, 56px) + 12px);
+  height: calc(100vh - var(--ytd-masthead-height, 56px) - 36px);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+#yts-tabs {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding-bottom: 12px;
+}
+
+.yts-tab {
+  font-family: "Roboto", "Arial", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 2rem;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--yts-chip-bg);
+  color: var(--yts-chip-fg);
+}
+
+.yts-tab:hover:not([aria-selected="true"]) {
+  background: var(--yts-chip-bg-hover);
+}
+
+.yts-tab[aria-selected="true"] {
+  background: var(--yts-chip-active-bg);
+  color: var(--yts-chip-active-fg);
+}
+
+.yts-pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-width: thin;
+}
+
+.yts-pane[hidden] {
+  display: none !important;
+}
+
+/* Tidy up spacing of the moved YouTube elements inside the panel */
+#yts-pane-comments > #comments {
+  margin-top: 0;
+}
+
+#yts-pane-description > #description {
+  margin-top: 0;
+}

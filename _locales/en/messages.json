@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "Side Tabs for YouTube",
+    "description": "Extension name shown in the browser and the Chrome Web Store."
+  },
+  "extDescription": {
+    "message": "Switch between Recommended, Info and Comments in the right sidebar while the video keeps playing. No scrolling down.",
+    "description": "Short description, max. 132 characters."
+  },
+  "tabRelated": {
+    "message": "Recommended",
+    "description": "Tab label for the recommended videos."
+  },
+  "tabDescription": {
+    "message": "Info",
+    "description": "Tab label for the video description."
+  },
+  "tabComments": {
+    "message": "Comments",
+    "description": "Tab label for the comment section."
+  }
+}
