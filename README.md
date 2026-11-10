@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/side-tabs-for-youtube/lppepiopnfbjkijeilcohjffckajbpkb"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/lppepiopnfbjkijeilcohjffckajbpkb?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-4f46e5.svg">
   <img alt="No tracking" src="https://img.shields.io/badge/tracking-none-brightgreen.svg">
@@ -38,6 +39,12 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 
 ## Install
 
+### Chrome Web Store (recommended)
+
+**[Install Side Tabs for YouTube from the Chrome Web Store](https://chromewebstore.google.com/detail/side-tabs-for-youtube/lppepiopnfbjkijeilcohjffckajbpkb)**
+
+Works in Chrome, Brave, Edge, Opera and Vivaldi. Updates arrive automatically.
+
 ### From source (Chrome, Brave, Edge, Arc, Opera, Vivaldi)
 
 1. Download this repository (**Code → Download ZIP**, then unzip) or clone it:
@@ -48,10 +55,6 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and select the repository folder (the one containing `manifest.json`).
 5. Reload any open YouTube tab.
-
-### Chrome Web Store
-
-*In review – the link follows as soon as the extension is published.*
 
 ## How it works
 
