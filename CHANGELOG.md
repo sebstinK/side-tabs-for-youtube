@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-11-11
+
+### Fixed
+- The page no longer scrolls into empty space below the video. YouTube's ambient mode glow reaches far below the player; without the comments underneath, it made the whole page scrollable.
+
 ## [1.1.0] - 2026-11-09
 
 ### Added

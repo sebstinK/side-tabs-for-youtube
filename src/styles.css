@@ -26,6 +26,14 @@ html.yts-active ytd-watch-flexy #secondary-inner {
   min-height: 100%;
 }
 
+/* Ambient mode draws its glow (#cinematics) scaled to 1.5x2 of the player, so it reaches
+   far below the player. Normally the comments hide that; with them moved into the panel
+   the glow alone made the page scrollable into empty space. Clip vertical overflow at
+   the bottom of the app (at least the window height): nothing real lives below it. */
+html.yts-active ytd-app {
+  overflow-y: clip;
+}
+
 #yts-panel {
   position: sticky;
   top: calc(var(--ytd-masthead-height, 56px) + 12px);
