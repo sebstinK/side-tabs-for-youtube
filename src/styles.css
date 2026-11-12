@@ -49,9 +49,25 @@ html.yts-active ytd-app {
   gap: 8px;
   flex: 0 0 auto;
   padding-bottom: 12px;
+  /* More tabs than fit (playlist, chat, transcript, …): scroll sideways, no wrapping. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#yts-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.yts-tab[hidden] {
+  display: none !important;
 }
 
 .yts-tab {
+  flex: 0 0 auto;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: "Roboto", "Arial", sans-serif;
   font-size: 1.4rem;
   font-weight: 500;
@@ -84,6 +100,60 @@ html.yts-active ytd-app {
 
 .yts-pane[hidden] {
   display: none !important;
+}
+
+/* Panes whose content scrolls itself (playlist, live chat, side panels): the content
+   gets the full height of the pane, the pane itself does not scroll. */
+.yts-pane.yts-fill {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-right: 0;
+}
+
+.yts-fill > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Playlist / mix / queue: YouTube caps its height and rounds it as a box above the list. */
+#yts-pane-playlist > ytd-playlist-panel-renderer {
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
+
+/* Live chat */
+#yts-pane-chat > #chat-container {
+  display: flex;
+  flex-direction: column;
+}
+
+#yts-pane-chat ytd-live-chat-frame#chat {
+  flex: 1 1 auto;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+/* Side panels (transcript, chapters, …): only the selected one, at full height. */
+#yts-pane-panels > #panels {
+  display: flex;
+  flex-direction: column;
+}
+
+#yts-pane-panels ytd-engagement-panel-section-list-renderer:not([visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]),
+#yts-pane-panels ytd-engagement-panel-section-list-renderer.yts-off {
+  display: none !important;
+}
+
+#yts-pane-panels ytd-engagement-panel-section-list-renderer {
+  flex: 1 1 auto;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
 }
 
 /* Tidy up spacing of the moved YouTube elements inside the panel */

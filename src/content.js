@@ -13,6 +13,14 @@
     related: ['#secondary #related'],
     description: ['ytd-watch-metadata #bottom-row > #description'],
     comments: ['#below #comments', 'ytd-comments#comments'],
+    // Things YouTube shows on top of the recommendations, each gets its own tab while shown.
+    secondaryInner: '#secondary-inner',
+    playlist: ['#secondary ytd-playlist-panel-renderer#playlist'], // playlists, mixes and the queue
+    chat: ['#secondary #chat-container'],                          // live chat and chat replay
+    chatFrame: 'ytd-live-chat-frame',
+    panels: ['#secondary #panels'],                                // transcript, chapters, …
+    panel: 'ytd-engagement-panel-section-list-renderer',
+    panelTitle: ['#title-text', 'ytd-engagement-panel-title-header-renderer #title'],
     // Comment count, sorting and "Add a comment…" box at the top of the comment section.
     commentsHeader: ['ytd-comments#comments ytd-item-section-renderer#sections > #header'],
     // Hover preview: YouTube renders it once, absolutely positioned in page coordinates.
@@ -26,11 +34,51 @@
   };
 
   // To add a tab: add an entry here, a selector list in SELECTORS and a label in _locales.
+  // `shown(el)` marks a tab that only appears while YouTube shows that content; such a tab
+  // is selected automatically when it appears (e.g. when you start a playlist).
+  // `id()` tells one occurrence from the next (another playlist, another live stream),
+  // so the tab is selected again for new content but not on every video of a playlist.
+  // `fill`: the content scrolls itself (YouTube's own list or an iframe), so it gets the
+  // full height of the pane instead of scrolling inside it.
   const TABS = [
-    { key: 'related', label: t('tabRelated', 'Recommended') },
-    { key: 'description', label: t('tabDescription', 'Info') },
-    { key: 'comments', label: t('tabComments', 'Comments') },
+    { key: 'playlist', label: playlistLabel, fill: true, shown: (el) => !el.hidden, id: () => param('list') || 'queue' },
+    { key: 'chat', label: () => t('tabChat', 'Chat'), fill: true, shown: isChatShown, id: () => param('v') },
+    { key: 'related', label: () => t('tabRelated', 'Recommended') },
+    { key: 'description', label: () => t('tabDescription', 'Info') },
+    { key: 'comments', label: () => t('tabComments', 'Comments') },
   ];
+  const FIXED_TABS = TABS.filter((tab) => !tab.shown).map((tab) => tab.key);
+
+  // YouTube's side panels (transcript, chapters, products, …) live together in #panels.
+  // That container goes into one shared pane; every opened panel gets a tab of its own,
+  // keyed `panel:<target-id>`, and only the selected one is shown in the pane.
+  const PANELS_PANE = 'panels';
+  const PANEL_PREFIX = 'panel:';
+  const PANEL_OPEN = 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED';
+  // Opened by YouTube itself rather than by you: they get a tab, but never take focus.
+  const QUIET_PANELS = /ads|shopping|merch|product/i;
+
+  function isChatShown(el) {
+    const frame = el.querySelector(SELECTORS.chatFrame);
+    return Boolean(frame && !frame.hidden);
+  }
+
+  const param = (name) => new URLSearchParams(location.search).get(name);
+
+  // The queue ("Add to queue") uses the same panel as a playlist, but has no list in the URL.
+  function playlistLabel() {
+    return param('list')
+      ? t('tabPlaylist', 'Playlist')
+      : t('tabQueue', 'Queue');
+  }
+
+  function panelLabel(panel) {
+    for (const sel of SELECTORS.panelTitle) {
+      const text = panel.querySelector(sel)?.textContent.trim();
+      if (text) return text;
+    }
+    return /ads/i.test(panel.getAttribute('target-id') || '') ? t('tabAd', 'Ad') : t('tabMore', 'More');
+  }
 
   // Parts that stay pinned between the tab bar and the scrolling list of a tab.
   // They are moved out of the list into their own slot, so nothing scrolls behind them.
@@ -43,13 +91,21 @@
 
   const state = {
     panel: null,
-    panes: {},   // key -> pane element
+    bar: null,
+    panes: {},   // pane key -> pane element (tab key, or PANELS_PANE for all side panels)
     slots: {},   // pinned key -> slot element
-    buttons: {}, // key -> tab button
+    buttons: {}, // tab key -> tab button
     moved: {},   // key -> { el, placeholder, container }
-    scroll: {},  // key -> saved scrollTop
-    active: 'related',
+    scroll: {},  // pane key -> saved scrollTop
+    active: 'related',    // tab shown right now
+    preferred: 'related', // last fixed tab you picked (remembered across videos)
+    shown: new Map(),     // conditional tab key -> id of the content it showed last
   };
+
+  // Extra elements YouTube adds to the sidebar that we don't know (yet). Each gets a
+  // unique key, so a re-created element never fights with the old one over a slot.
+  const extraKeys = new WeakMap();
+  let extraCount = 0;
 
   // ---------- Helpers ----------
 
@@ -87,18 +143,12 @@
     bar.setAttribute('role', 'tablist');
     panel.appendChild(bar);
 
-    for (const { key, label } of TABS) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'yts-tab';
-      btn.textContent = label;
-      btn.setAttribute('role', 'tab');
-      btn.addEventListener('click', () => {
-        selectTab(key);
-        btn.blur(); // keep YouTube keyboard shortcuts (space, k, j, l …) working
-      });
+    state.bar = bar;
+
+    for (const { key, label, fill, shown } of TABS) {
+      const btn = makeButton(key, label());
+      btn.hidden = Boolean(shown);
       bar.appendChild(btn);
-      state.buttons[key] = btn;
 
       for (const pin of PINNED.filter((p) => p.tab === key)) {
         const slot = document.createElement('div');
@@ -109,17 +159,40 @@
         state.slots[pin.key] = slot;
       }
 
-      const pane = document.createElement('div');
-      pane.className = 'yts-pane';
-      pane.id = `yts-pane-${key}`;
-      pane.setAttribute('role', 'tabpanel');
-      pane.hidden = true;
-      pane.addEventListener('scroll', () => onPaneScroll(pane), { passive: true });
-      panel.appendChild(pane);
-      state.panes[key] = pane;
+      panel.appendChild(makePane(key, fill));
     }
+    panel.appendChild(makePane(PANELS_PANE, true));
     return panel;
   }
+
+  function makeButton(key, label) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'yts-tab';
+    btn.textContent = label;
+    btn.title = label;
+    btn.setAttribute('role', 'tab');
+    btn.addEventListener('click', () => {
+      selectTab(key);
+      btn.blur(); // keep YouTube keyboard shortcuts (space, k, j, l …) working
+    });
+    state.buttons[key] = btn;
+    return btn;
+  }
+
+  function makePane(key, fill) {
+    const pane = document.createElement('div');
+    pane.className = fill ? 'yts-pane yts-fill' : 'yts-pane';
+    pane.id = `yts-pane-${key}`;
+    pane.setAttribute('role', 'tabpanel');
+    pane.hidden = true;
+    pane.addEventListener('scroll', () => onPaneScroll(pane), { passive: true });
+    state.panes[key] = pane;
+    return pane;
+  }
+
+  const paneKeyOf = (key) => (key.startsWith(PANEL_PREFIX) ? PANELS_PANE : key);
+  const activePane = () => state.panes[paneKeyOf(state.active)];
 
   function onPaneScroll(pane) {
     followPreview(pane);
@@ -173,7 +246,7 @@
     preview.observer = new MutationObserver((mutations) => {
       const box = previewBox();
       if (!box || !mutations.some((m) => m.target === box)) return;
-      const pane = state.panes[state.active];
+      const pane = activePane();
       preview.baseline = pane ? pane.scrollTop : 0;
       setPreviewShift(0);
       // YouTube draws the preview larger than the thumbnail, so near the top of the
@@ -236,7 +309,7 @@
   function onWheel(e) {
     if (!state.panel || e.defaultPrevented || e.ctrlKey) return; // ctrl+wheel = zoom
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;         // horizontal scrolling
-    const pane = state.panes[state.active];
+    const pane = activePane();
     const target = e.target instanceof Element ? e.target : null;
     if (!pane || !target || pane.contains(target)) return;       // native scrolling works
 
@@ -257,26 +330,46 @@
   }
 
   function selectTab(key) {
-    const prev = state.active;
-    if (state.panes[prev] && !state.panes[prev].hidden) {
-      state.scroll[prev] = state.panes[prev].scrollTop;
-    }
+    if (!state.buttons[key]) key = state.preferred;
+    const prevPane = activePane();
+    if (prevPane && !prevPane.hidden) state.scroll[paneKeyOf(state.active)] = prevPane.scrollTop;
     state.active = key;
-    for (const { key: k } of TABS) {
-      const on = k === key;
-      state.panes[k].hidden = !on;
-      state.buttons[k].setAttribute('aria-selected', String(on));
-    }
+    const paneKey = paneKeyOf(key);
+    for (const [k, pane] of Object.entries(state.panes)) pane.hidden = k !== paneKey;
+    for (const [k, btn] of Object.entries(state.buttons)) btn.setAttribute('aria-selected', String(k === key));
     for (const pin of PINNED) {
       if (state.slots[pin.key]) state.slots[pin.key].hidden = pin.tab !== key;
     }
-    const pane = state.panes[key];
-    pane.scrollTop = state.scroll[key] || 0;
+    if (paneKey === PANELS_PANE) showOnlyPanel(key.slice(PANEL_PREFIX.length));
+    const pane = state.panes[paneKey];
+    pane.scrollTop = state.scroll[paneKey] || 0;
     markScrolled(pane);
     preview.baseline = pane.scrollTop;
     setPreviewShift(0);
     nudgeLazyLoad(pane);
-    try { store?.set({ [STORAGE_KEY]: key }); } catch (_) { /* extension was reloaded */ }
+    revealButton(state.buttons[key]);
+    if (FIXED_TABS.includes(key)) {
+      state.preferred = key;
+      try { store?.set({ [STORAGE_KEY]: key }); } catch (_) { /* extension was reloaded */ }
+    }
+  }
+
+  // Scrolls the tab bar (never the page) so the selected tab is fully visible.
+  function revealButton(btn) {
+    const bar = state.bar;
+    if (!bar || btn.hidden) return;
+    const left = btn.offsetLeft - bar.offsetLeft;
+    if (left < bar.scrollLeft) bar.scrollLeft = left;
+    else if (left + btn.offsetWidth > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = left + btn.offsetWidth - bar.clientWidth;
+  }
+
+  // Several side panels can be open at once; the pane shows only the selected one.
+  function showOnlyPanel(targetId) {
+    const container = state.moved[PANELS_PANE]?.el;
+    if (!container) return;
+    for (const p of container.querySelectorAll(`:scope > ${SELECTORS.panel}`)) {
+      p.classList.toggle('yts-off', p.getAttribute('target-id') !== targetId);
+    }
   }
 
   // YouTube lazy-loads comments and recommendations once they become visible.
@@ -295,11 +388,46 @@
   // sorting, lazy loading and timestamp links keep working. A comment node marks
   // the original spot so everything can be put back.
 
-  function moveIn(key, el, container) {
+  // Moving an iframe reloads it from its src attribute. The live chat has none (YouTube
+  // navigates it by script), so it would come back empty. Note where each same-origin
+  // frame was and send it back there after the move.
+  // A frame YouTube is still navigating can't be moved yet: the move would cancel the
+  // navigation before we can read the address. Wait for it to load, then sync again.
+  const waitingFrames = new WeakSet();
+  function framesSettled(el) {
+    let settled = true;
+    for (const frame of el.querySelectorAll('iframe')) {
+      let blank = false;
+      try { blank = !frame.src && frame.contentWindow?.location.href === 'about:blank'; } catch (_) { /* cross-origin */ }
+      if (!blank || el.hidden || frame.closest('[hidden]')) continue;
+      settled = false;
+      if (!waitingFrames.has(frame)) {
+        waitingFrames.add(frame);
+        frame.addEventListener('load', () => { waitingFrames.delete(frame); scheduleSync(); }, { once: true });
+      }
+    }
+    return settled;
+  }
+
+  function keepingFrames(el, move) {
+    const frames = [];
+    for (const frame of el.querySelectorAll('iframe')) {
+      try {
+        const href = frame.contentWindow?.location.href;
+        if (href && href !== 'about:blank' && href !== frame.src) frames.push([frame, href]);
+      } catch (_) { /* cross-origin frame (e.g. an ad): it reloads by itself */ }
+    }
+    move();
+    for (const [frame, href] of frames) {
+      try { frame.contentWindow.location.replace(href); } catch (_) { /* frame is gone */ }
+    }
+  }
+
+  function moveIn(key, el, container, before = null) {
     if (state.moved[key]) restoreOne(key);
     const placeholder = document.createComment(`yts-placeholder-${key}`);
     el.parentNode.insertBefore(placeholder, el);
-    container.appendChild(el);
+    keepingFrames(el, () => container.insertBefore(el, before && before.parentNode === container ? before : null));
     state.moved[key] = { el, placeholder, container };
   }
 
@@ -311,7 +439,7 @@
     // on its own (e.g. single-column layout), leave it there.
     if (state.panel && state.panel.contains(el)) {
       if (placeholder.isConnected) {
-        placeholder.parentNode.insertBefore(el, placeholder);
+        keepingFrames(el, () => placeholder.parentNode.insertBefore(el, placeholder));
       } else {
         el.remove();
       }
@@ -342,14 +470,15 @@
     }
     for (const { key, el, anchor, before } of displaced) {
       if (!state.panel.contains(anchor)) {
-        if (before) anchor.before(el);
-        else anchor.after(el);
+        keepingFrames(el, () => (before ? anchor.before(el) : anchor.after(el)));
       }
       restoreOne(key); // only drops the placeholder unless el is still in the panel
     }
 
+    for (const p of document.querySelectorAll(`${SELECTORS.panel}.yts-off`)) p.classList.remove('yts-off');
     state.panel.remove();
     state.panel = null;
+    state.bar = null;
     state.panes = {};
     state.slots = {};
     state.buttons = {};
@@ -365,7 +494,81 @@
     state.panel = buildPanel();
     related.parentNode.insertBefore(state.panel, related);
     document.documentElement.classList.add('yts-active');
-    selectTab(state.active);
+    selectTab(state.active); // e.g. stays on the playlist after leaving theater mode
+  }
+
+  // Everything else YouTube puts into the sidebar (now or in the future) goes into the
+  // Recommended tab above the list, in its original order, so nothing is left hanging
+  // above the panel. Empty helper containers simply stay invisible there.
+  function moveExtras(flexy) {
+    const inner = flexy.querySelector(SELECTORS.secondaryInner);
+    const related = state.moved.related?.el;
+    if (!inner || !related) return;
+    for (const el of [...inner.children]) {
+      if (el === state.panel || !(el instanceof HTMLElement) || !framesSettled(el)) continue;
+      let key = extraKeys.get(el);
+      if (!key) extraKeys.set(el, (key = `extra:${++extraCount}`));
+      moveIn(key, el, state.panes.related, related);
+    }
+    // Forget extras YouTube threw away.
+    for (const key of Object.keys(state.moved)) {
+      if (key.startsWith('extra:') && !state.moved[key].el.isConnected) {
+        state.moved[key].placeholder.remove();
+        delete state.moved[key];
+      }
+    }
+  }
+
+  // Shows a tab for every opened side panel, in the order YouTube keeps them.
+  function syncPanelTabs() {
+    const container = state.moved[PANELS_PANE]?.el;
+    const open = container
+      ? [...container.querySelectorAll(`:scope > ${SELECTORS.panel}`)].filter(
+          (p) => p.getAttribute('visibility') === PANEL_OPEN && p.getAttribute('target-id')
+        )
+      : [];
+    const wanted = new Map(open.map((p) => [PANEL_PREFIX + p.getAttribute('target-id'), p]));
+
+    for (const key of Object.keys(state.buttons)) {
+      if (key.startsWith(PANEL_PREFIX) && !wanted.has(key)) {
+        state.buttons[key].remove();
+        delete state.buttons[key];
+      }
+    }
+    for (const [key, p] of wanted) {
+      const label = panelLabel(p);
+      const btn = state.buttons[key] || makeButton(key, label);
+      if (btn.textContent !== label) btn.textContent = btn.title = label;
+      if (!btn.isConnected) state.bar.appendChild(btn);
+    }
+    return wanted;
+  }
+
+  // Shows or hides the conditional tabs and switches to content that just appeared.
+  function syncShownTabs() {
+    const now = new Map(); // key -> { id, focus }
+    for (const { key, shown, label, id } of TABS) {
+      if (!shown) continue;
+      const el = state.moved[key]?.el;
+      const on = Boolean(el && shown(el));
+      state.buttons[key].hidden = !on;
+      if (on) {
+        now.set(key, { id: id(), focus: true });
+        const text = label();
+        if (state.buttons[key].textContent !== text) state.buttons[key].textContent = state.buttons[key].title = text;
+      }
+    }
+    for (const [key, p] of syncPanelTabs()) {
+      now.set(key, { id: param('v'), focus: !QUIET_PANELS.test(p.getAttribute('target-id')) });
+    }
+
+    let next = null;
+    for (const [key, { id, focus }] of now) if (focus && state.shown.get(key) !== id) next = key;
+    // Remember what was shown; content that went away may come back as new.
+    state.shown = new Map([...now].map(([key, { id }]) => [key, id]));
+    if (next) selectTab(next);
+    else if (!FIXED_TABS.includes(state.active) && !now.has(state.active)) selectTab(state.preferred);
+    else if (paneKeyOf(state.active) === PANELS_PANE) showOnlyPanel(state.active.slice(PANEL_PREFIX.length));
   }
 
   // ---------- Sync ----------
@@ -387,13 +590,17 @@
 
     for (const { key } of TABS) {
       const candidate = findCandidate(flexy, SELECTORS[key]);
-      if (candidate) moveIn(key, candidate, state.panes[key]);
+      if (candidate && framesSettled(candidate)) moveIn(key, candidate, state.panes[key]);
     }
+    const panels = findCandidate(flexy, SELECTORS.panels);
+    if (panels) moveIn(PANELS_PANE, panels, state.panes[PANELS_PANE]);
     for (const { key } of PINNED) {
       const slot = state.slots[key];
       const candidate = findCandidate(flexy, SELECTORS[key], slot);
       if (candidate) moveIn(key, candidate, slot);
     }
+    moveExtras(flexy);
+    syncShownTabs();
   }
 
   let scheduled = false;
@@ -413,7 +620,7 @@
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['theater', 'fullscreen', 'is-two-columns_', 'hidden'],
+      attributeFilter: ['theater', 'fullscreen', 'is-two-columns_', 'hidden', 'visibility'],
     });
     window.addEventListener('yt-navigate-finish', scheduleSync);
     // Capture phase + passive:false so we can take over the wheel before the page scrolls.
@@ -424,7 +631,7 @@
   try {
     if (store) {
       store.get(STORAGE_KEY, (res) => {
-        if (TABS.some((tab) => tab.key === res?.[STORAGE_KEY])) state.active = res[STORAGE_KEY];
+        if (FIXED_TABS.includes(res?.[STORAGE_KEY])) state.preferred = state.active = res[STORAGE_KEY];
         start();
       });
     } else {

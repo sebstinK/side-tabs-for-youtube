@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] - 2026-11-12
+
+### Added
+- Everything YouTube shows in the right sidebar now gets its own tab, automatically: a playlist or mix, the queue ("Add to queue"), the live chat or chat replay, and side panels like the transcript, chapters or products. Before, they sat above the tabs and pushed them down. The tab appears and opens when the content shows up (e.g. when you start a playlist), stays while you watch the next videos of it and disappears when the content is gone. If there are more tabs than fit, the tab bar scrolls sideways.
+
 ## [1.1.1] - 2026-11-11
 
 ### Fixed

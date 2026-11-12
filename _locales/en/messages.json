@@ -18,5 +18,25 @@
   "tabComments": {
     "message": "Comments",
     "description": "Tab label for the comment section."
+  },
+  "tabPlaylist": {
+    "message": "Playlist",
+    "description": "Tab label for a playlist or mix that is playing."
+  },
+  "tabQueue": {
+    "message": "Queue",
+    "description": "Tab label for the queue (videos added with \"Add to queue\")."
+  },
+  "tabChat": {
+    "message": "Chat",
+    "description": "Tab label for the live chat or chat replay."
+  },
+  "tabAd": {
+    "message": "Ad",
+    "description": "Tab label for an ad panel YouTube shows in the sidebar."
+  },
+  "tabMore": {
+    "message": "More",
+    "description": "Tab label for a side panel without a title."
   }
 }

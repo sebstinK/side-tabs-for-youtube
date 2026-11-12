@@ -13,5 +13,20 @@
   },
   "tabComments": {
     "message": "Kommentare"
+  },
+  "tabPlaylist": {
+    "message": "Playlist"
+  },
+  "tabQueue": {
+    "message": "Warteschlange"
+  },
+  "tabChat": {
+    "message": "Chat"
+  },
+  "tabAd": {
+    "message": "Anzeige"
+  },
+  "tabMore": {
+    "message": "Mehr"
   }
 }

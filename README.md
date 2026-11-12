@@ -28,6 +28,7 @@ On a YouTube watch page, the comments and the full description sit *below* the v
 ## Features
 
 - **Three tabs in the right sidebar:** Recommended, Info (description) and Comments.
+- **Everything else in the sidebar gets a tab too, automatically:** a playlist or mix, the queue ("Add to queue"), the live chat or chat replay, and side panels like the transcript or chapters. The tab appears (and opens) when YouTube shows that content and disappears when it's gone.
 - **Always ready to comment:** the "Add a comment…" box stays pinned at the top of the Comments tab.
 - **The video stays visible.** The sidebar is as tall as the window and scrolls on its own.
 - **Everything still works.** Replies, likes, sorting, "load more" and timestamp links behave as usual, because the extension uses YouTube's own elements instead of copies.
@@ -62,7 +63,7 @@ YouTube is a single-page app built from Polymer web components. The extension is
 
 1. It waits until the watch page (`ytd-watch-flexy`) has rendered the recommendations (`#related`), the description (`#description`) and the comments (`#comments`).
 2. It inserts a panel with a tab bar at the top of the right column.
-3. It **moves** those three elements into the tabs. A placeholder comment node remembers each original spot.
+3. It **moves** those three elements into the tabs. A placeholder comment node remembers each original spot. Whatever else YouTube puts into the right column (playlist/queue, live chat, side panels such as the transcript) is moved into a tab of its own that only shows while there is content; anything unknown goes above the recommendations, so nothing is left outside the panel.
 4. A `MutationObserver` plus YouTube's `yt-navigate-finish` event trigger an idempotent `sync()`, which handles navigation between videos, late-loading elements and layout changes.
 5. When the layout is not the default two-column view (theater, fullscreen, narrow window), everything is put back where YouTube expects it.
 
